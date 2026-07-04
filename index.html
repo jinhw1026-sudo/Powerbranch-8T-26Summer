@@ -23,7 +23,7 @@ body{
 /* ===== 헤더 ===== */
 header{padding:36px 0 8px;text-align:center}
 .eyebrow{display:inline-block;font-weight:700;font-size:12.5px;letter-spacing:.22em;color:var(--pool);background:var(--water-soft);padding:6px 16px;border-radius:999px;margin-bottom:12px}
-h1{font-family:'Black Han Sans',sans-serif;font-size:clamp(34px,6.5vw,58px);line-height:1.05;color:var(--pool-deep)}
+h1{font-family:'Black Han Sans',sans-serif;font-size:clamp(28px,5.5vw,46px);line-height:1.2;color:var(--pool-deep);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;letter-spacing:-0.01em}
 h1 .sun{color:var(--sun);text-shadow:0 2px 0 rgba(0,0,0,.06)}
 .sub{margin-top:8px;color:#3D6B7E;font-size:14.5px}
 .dday{display:inline-flex;align-items:center;gap:8px;margin-top:14px;background:var(--pool-deep);color:#fff;border-radius:12px;padding:9px 18px;font-weight:700;font-size:14px}
@@ -31,7 +31,7 @@ h1 .sun{color:var(--sun);text-shadow:0 2px 0 rgba(0,0,0,.06)}
 
 /* ===== 탭 ===== */
 .tabs{display:flex;gap:8px;justify-content:center;margin:26px 0 22px;flex-wrap:wrap}
-.tab{font-family:'Black Han Sans',sans-serif;font-size:16px;color:#5E8496;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 20px;cursor:pointer}
+.tab{font-family:'Black Han Sans',sans-serif;font-size:16px;color:#5E8496;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 20px;cursor:pointer;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;letter-spacing:-0.01em}
 .tab.active{background:var(--pool);color:#fff;border-color:var(--pool)}
 .tab:focus-visible{outline:3px solid var(--water);outline-offset:2px}
 .page{display:none}
@@ -195,7 +195,7 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
   .wrap{padding:0 12px}
   body{padding-bottom:56px}
   header{padding:24px 0 6px}
-  h1{font-size:clamp(30px,9vw,40px)}
+  h1{font-size:clamp(24px,7vw,32px)}
   .sub{font-size:12.5px;padding:0 6px}
   .dday{font-size:12.5px;padding:8px 14px}
   .dday b{font-size:18px}
@@ -383,7 +383,7 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
     <div class="card">
       <h2>팀원 관리</h2>
       <table class="adm">
-        <thead><tr><th>이름</th><th>개인 PIN</th><th></th></tr></thead>
+        <thead><tr><th>이름</th><th>개인 PIN</th><th>관리자 본인</th><th></th></tr></thead>
         <tbody id="member-rows"></tbody>
       </table>
       <div class="inline-add">
@@ -393,6 +393,7 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
       <p class="muted" style="margin-top:10px">
         · 팀원은 「내 계약 입력」 탭에서 최초 1회 본인 이름을 선택하고 개인 PIN을 만듭니다. 이후 그 기기에서는 본인 계약만 표시됩니다.<br>
         · PIN을 잊은 팀원은 여기서 <b>PIN 초기화</b> 후 다시 설정하면 됩니다.<br>
+        · <b>관리자 본인</b> 체크박스를 켠 사람은 팀 대시보드와 현황 요약 복사에서 숨겨지고, 관리자 비밀번호로 로그인했을 때만 그 사람 카드가 보입니다. (내 계약 입력에서 본인 이름+PIN으로 입력하는 것은 그대로 가능)<br>
         · 팀원을 삭제하면 해당 팀원의 계약 데이터도 함께 삭제됩니다.
       </p>
     </div>
@@ -417,11 +418,8 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ================= Supabase 연결 설정 =================
-   아래 두 값을 실제 프로젝트 값으로 교체하세요.
-   - 기존 https://jinhw1026-sudo.github.io/power8team/ 에서 쓰는
-     Supabase 프로젝트를 그대로 재사용하는 걸 권장합니다.
-   - Supabase 대시보드 → Settings → API 에서 확인 가능
-   - 이 페이지를 쓰려면 Supabase SQL Editor에서 아래 테이블을 먼저 만드세요:
+   이미 실제 프로젝트 값이 들어가 있습니다. (team8-summer 프로젝트)
+   이 페이지를 쓰려면 Supabase SQL Editor에서 아래 테이블을 먼저 만드세요:
 
    create table if not exists summer_tracker_kv (
      key text primary key,
@@ -434,9 +432,9 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
    create policy "public update" on summer_tracker_kv for update using (true);
    create policy "public delete" on summer_tracker_kv for delete using (true);
 =========================================================== */
-const SUPABASE_URL = 'https://pfyokjedudohiehdzmhg.supabase.co';   // ← 실제 프로젝트 URL로 교체
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmeW9ramVkdWRvaGllaGR6bWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNTIzMjUsImV4cCI6MjA5ODcyODMyNX0.OZdrnTJtGAMpfkvNZVXnTe8d99PDD0vjhjMCXzBXewo';               // ← 실제 anon public key로 교체
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = 'https://pfyokjedudohiehdzmhg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmeW9ramVkdWRvaGllaGR6bWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNTIzMjUsImV4cCI6MjA5ODcyODMyNX0.OZdrnTJtGAMpfkvNZVXnTe8d99PDD0vjhjMCXzBXewo';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= 기준 ================= */
 const PLAN_A = [
@@ -455,7 +453,7 @@ const DEFAULT_PW = '8888';
 
 /* ================= 상태 ================= */
 let products = [];   // [{id,name,rate,bonus}]
-let members  = [];   // [{id,name}]
+let members  = [];   // [{id,name,isAdmin}]
 let contracts = {};  // memberId -> [...]
 let pins = {};       // memberId -> pin (공유)
 let myId = null;     // 이 기기의 본인 (개인 저장소)
@@ -573,18 +571,24 @@ function showPage(id){
   document.getElementById('page-'+id).classList.add('active');
 }
 
-/* ================= 대시보드 ================= */
+/* ================= 대시보드 =================
+   관리자 본인(isAdmin) 팀원은 일반 화면(adminMode=false)에서는
+   목록/달성·진행 카운트/현황 요약 복사 어디에도 나타나지 않습니다.
+   관리자 비밀번호로 로그인했을 때(adminMode=true)만 함께 표시됩니다.
+================================================= */
 function renderDash(){
   const box = document.getElementById('dash-members');
   document.getElementById('admin-pill').style.display = adminMode ? '' : 'none';
-  if(!members.length){
+  const visibleMembers = adminMode ? members : members.filter(m=>!m.isAdmin);
+
+  if(!visibleMembers.length){
     box.innerHTML = '<div class="card empty">등록된 팀원이 없습니다.<br>관리자 탭에서 팀원과 상품을 먼저 등록하세요.</div>';
     document.getElementById('cnt-done').textContent='0';
     document.getElementById('cnt-going').textContent='0';
     return;
   }
   let done=0, html='';
-  for(const m of members){
+  for(const m of visibleMembers){
     const s = statsOf(m.id);
     const A = planResult(PLAN_A,s,false), B = planResult(PLAN_B,s,false);
     const achieved = A.achieved || B.achieved;
@@ -609,6 +613,7 @@ function renderDash(){
     <div class="card">
       <div class="m-head">
         <span class="m-name">${esc(m.name)}</span>
+        ${m.isAdmin?'<span class="lane-tag" style="background:var(--admin)">관리자 비공개</span>':''}
         <span class="m-status ${achieved?'done':'going'}">${achieved?'🏆 썸머 달성!':'🌊 진행중 · '+Math.max(A.pct,B.pct)+'%'}</span>
       </div>
       <div class="m-nums">
@@ -627,7 +632,7 @@ function renderDash(){
   }
   box.innerHTML = html;
   document.getElementById('cnt-done').textContent = done;
-  document.getElementById('cnt-going').textContent = members.length - done;
+  document.getElementById('cnt-going').textContent = visibleMembers.length - done;
 }
 
 function laneHtml(title,r,cls,isBest,memberAchieved){
@@ -668,7 +673,7 @@ function renderIdentity(){
     return;
   }
 
-  // 관리자 모드: 전체 팀원 선택 가능 (수정 대행용)
+  // 관리자 모드: 전체 팀원 선택 가능 (수정 대행용, 관리자 본인 포함)
   if(adminMode){
     const cur = window.__adminSel || myId || members[0].id;
     window.__adminSel = cur;
@@ -677,14 +682,14 @@ function renderIdentity(){
       <span style="font-size:15px">🔓</span>
       <span class="tagline" style="color:#4C2A8C">관리자 모드 — 팀원 계약 열람/수정 가능</span>
       <select id="admin-sel" onchange="window.__adminSel=this.value; renderEntry();" style="margin-left:auto">
-        ${members.map(m=>`<option value="${m.id}" ${m.id===cur?'selected':''}>${esc(m.name)}</option>`).join('')}
+        ${members.map(m=>`<option value="${m.id}" ${m.id===cur?'selected':''}>${esc(m.name)}${m.isAdmin?' (관리자 본인)':''}</option>`).join('')}
       </select>
     </div>`;
     body.style.display='';
     return;
   }
 
-  // 본인 미설정: 이름 선택 + PIN
+  // 본인 미설정: 이름 선택 + PIN (관리자 본인으로 등록된 사람도 동일하게 이 방식으로 로그인 가능)
   if(!myId){
     area.innerHTML = `
     <div class="id-box">
@@ -947,8 +952,18 @@ function renderAdmin(){
           ? `<span class="pin-state set">설정됨</span> <button class="btn-ghost" onclick="resetPin('${m.id}')">PIN 초기화</button>`
           : `<span class="pin-state unset">미설정</span>`}
       </td>
+      <td style="text-align:center">
+        <input type="checkbox" ${m.isAdmin?'checked':''} onchange="toggleAdminMember('${m.id}', this.checked)">
+      </td>
       <td><button class="btn-x" title="삭제" onclick="removeMember('${m.id}')">✕</button></td>
-    </tr>`).join('') : '<tr><td colspan="3" class="empty">등록된 팀원이 없습니다. 아래에서 추가하세요.</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="4" class="empty">등록된 팀원이 없습니다. 아래에서 추가하세요.</td></tr>';
+}
+
+async function toggleAdminMember(id, checked){
+  const m = memberOf(id); if(!m) return;
+  m.isAdmin = checked;
+  await sSet('summer:members', members);
+  renderAll();
 }
 
 async function resetPin(id){
@@ -996,7 +1011,7 @@ async function removeProduct(id){
 async function addMember(){
   const name = document.getElementById('nm-name').value.trim();
   if(!name){ alert('팀원 이름을 입력하세요.'); return; }
-  const m = {id:uid(), name};
+  const m = {id:uid(), name, isAdmin:false};
   members.push(m);
   contracts[m.id] = [];
   await sSet('summer:members', members);
@@ -1023,7 +1038,9 @@ async function removeMember(id){
   renderAll();
 }
 
-/* ================= 요약 복사 (팀방용 · 기본 CANP 기준) ================= */
+/* ================= 요약 복사 (팀방용 · 기본 CANP 기준) =================
+   관리자 본인(isAdmin) 팀원은 항상 제외됩니다.
+================================================= */
 function copySummary(){
   const today = new Date();
   const end = new Date(2026,7,31);
@@ -1032,7 +1049,7 @@ function copySummary(){
     `🌊 파워지점 8팀 썸머 현황 (${today.getMonth()+1}/${today.getDate()}) D-${Math.max(dday,0)}`,
     ''
   ];
-  const sorted = [...members].map(m=>{
+  const sorted = members.filter(m=>!m.isAdmin).map(m=>{
     const s = statsOf(m.id);
     const A = planResult(PLAN_A,s,false), B = planResult(PLAN_B,s,false);
     return {m,s,A,B, achieved:A.achieved||B.achieved, best:Math.max(A.pct,B.pct)};
