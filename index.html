@@ -436,7 +436,7 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
 =========================================================== */
 const SUPABASE_URL = 'https://pfyokjedudohiehdzmhg.supabase.co';   // ← 실제 프로젝트 URL로 교체
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmeW9ramVkdWRvaGllaGR6bWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNTIzMjUsImV4cCI6MjA5ODcyODMyNX0.OZdrnTJtGAMpfkvNZVXnTe8d99PDD0vjhjMCXzBXewo';               // ← 실제 anon public key로 교체
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= 기준 ================= */
 const PLAN_A = [
@@ -499,7 +499,7 @@ async function sSet(key, val, shared=true){
 async function sDel(key, shared=true){
   if(!shared){ localStorage.removeItem(key); return; }
   try{
-    await supabase.from('summer_tracker_kv').delete().eq('key', key);
+    await sb.from('summer_tracker_kv').delete().eq('key', key);
   }catch(e){}
 }
 
