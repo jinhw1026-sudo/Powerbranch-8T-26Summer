@@ -434,8 +434,8 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
    create policy "public update" on summer_tracker_kv for update using (true);
    create policy "public delete" on summer_tracker_kv for delete using (true);
 =========================================================== */
-const SUPABASE_URL = 'https://YOUR-PROJECT-ID.supabase.co';   // ← 실제 프로젝트 URL로 교체
-const SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY';               // ← 실제 anon public key로 교체
+const SUPABASE_URL = 'https://pfyokjedudohiehdzmhg.supabase.co';   // ← 실제 프로젝트 URL로 교체
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmeW9ramVkdWRvaGllaGR6bWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNTIzMjUsImV4cCI6MjA5ODcyODMyNX0.OZdrnTJtGAMpfkvNZVXnTe8d99PDD0vjhjMCXzBXewo';               // ← 실제 anon public key로 교체
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= 기준 ================= */
