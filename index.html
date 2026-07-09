@@ -614,7 +614,14 @@ function showPage(id){
 function renderDash(){
   const box = document.getElementById('dash-members');
   document.getElementById('admin-pill').style.display = adminMode ? '' : 'none';
-  const visibleMembers = adminMode ? members : members.filter(m=>!m.isAdmin);
+  const visibleMembers = (adminMode ? members : members.filter(m=>!m.isAdmin)).slice().sort((x,y)=>{
+    const sx=statsOf(x.id), sy=statsOf(y.id);
+    const Ax=planResult(PLAN_A,sx,false), Bx=planResult(PLAN_B,sx,false);
+    const Ay=planResult(PLAN_A,sy,false), By=planResult(PLAN_B,sy,false);
+    const doneX = Ax.achieved||Bx.achieved, doneY = Ay.achieved||By.achieved;
+    const bestX = Math.max(Ax.pct,Bx.pct), bestY = Math.max(Ay.pct,By.pct);
+    return (doneY-doneX) || (bestY-bestX);
+  });
 
   if(!visibleMembers.length){
     box.innerHTML = '<div class="card empty">등록된 팀원이 없습니다.<br>관리자 탭에서 팀원과 상품을 먼저 등록하세요.</div>';
