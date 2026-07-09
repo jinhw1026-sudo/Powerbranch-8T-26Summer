@@ -290,15 +290,15 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
     <div class="rule-card a">
       <div class="rule-tag">A안</div>
       <ul class="rule-list">
-        <li>생명보험 CMIP <b>300만원 이상</b></li>
-        <li>CANP (월납 × 환산율) <b>1,800만원 이상</b></li>
+        <li>생명보험 CMIP <b>290만원 이상</b></li>
+        <li>CANP (월납 × 환산율) <b>1,750만원 이상</b></li>
         <li>생명보험 건수 <b>18건 이상</b></li>
       </ul>
     </div>
     <div class="rule-card b">
       <div class="rule-tag">B안</div>
       <ul class="rule-list">
-        <li>생명보험 CMIP <b>200만원 이상</b> · CANP <b>1,300만원 이상</b></li>
+        <li>생명보험 CMIP <b>190만원 이상</b> · CANP <b>1,250만원 이상</b></li>
         <li>생명보험 건수 <b>16건 이상</b></li>
         <li>손해보험 CMIP <b>100만원 이상</b></li>
       </ul>
@@ -438,13 +438,13 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= 기준 ================= */
 const PLAN_A = [
-  {key:'lifeCmip', name:'생명 CMIP', target:3000000,  unit:'만원', money:true},
-  {key:'canp',     name:'CANP',      target:18000000, unit:'만원', money:true},
+  {key:'lifeCmip', name:'생명 CMIP', target:2900000,  unit:'만원', money:true},
+  {key:'canp',     name:'CANP',      target:17500000, unit:'만원', money:true},
   {key:'lifeCnt',  name:'생명 건수', target:18,       unit:'건'},
 ];
 const PLAN_B = [
-  {key:'lifeCmip', name:'생명 CMIP', target:2000000,  unit:'만원', money:true},
-  {key:'canp',     name:'CANP',      target:13000000, unit:'만원', money:true},
+  {key:'lifeCmip', name:'생명 CMIP', target:1900000,  unit:'만원', money:true},
+  {key:'canp',     name:'CANP',      target:12500000, unit:'만원', money:true},
   {key:'lifeCnt',  name:'생명 건수', target:16,       unit:'건'},
   {key:'pcCmip',   name:'손보 CMIP', target:1000000,  unit:'만원', money:true},
 ];
