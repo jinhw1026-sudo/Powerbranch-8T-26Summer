@@ -432,9 +432,32 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
    create policy "public update" on summer_tracker_kv for update using (true);
    create policy "public delete" on summer_tracker_kv for delete using (true);
 =========================================================== */
-const SUPABASE_URL = 'https://pfyokjedudohiehdzmhg.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmeW9ramVkdWRvaGllaGR6bWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNTIzMjUsImV4cCI6MjA5ODcyODMyNX0.OZdrnTJtGAMpfkvNZVXnTe8d99PDD0vjhjMCXzBXewo';
+const SUPABASE_URL = 'https://pfyokjedudohiehdzmhg.supabase.co';   // ⚠️ 다른 팀에게 줄 때는 이 값을 지우고 YOUR-PROJECT-ID로 되돌리세요
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmeW9ramVkdWRvaGllaGR6bWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNTIzMjUsImV4cCI6MjA5ODcyODMyNX0.OZdrnTJtGAMpfkvNZVXnTe8d99PDD0vjhjMCXzBXewo'; // ⚠️ 위와 동일
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* 다른 팀이 이 코드를 가져다 쓸 때, 위 두 값을 자기 팀 것으로 바꾸는 걸
+   깜빡하면 화면이 그냥 멈춰서 헤매게 됩니다. 그걸 막기 위한 안전장치입니다.
+   (지금 이 파일처럼 실제 값이 이미 들어있으면 이 검사는 그냥 통과합니다) */
+if (SUPABASE_URL.includes('YOUR-PROJECT-ID') || SUPABASE_ANON_KEY.includes('YOUR-ANON-PUBLIC-KEY')) {
+  document.body.innerHTML = `
+    <div style="max-width:480px;margin:80px auto;padding:32px;font-family:'Noto Sans KR',sans-serif;text-align:center;line-height:1.8;color:#0B2436">
+      <div style="font-size:36px;margin-bottom:12px">⚙️</div>
+      <h2 style="color:#075985;margin-bottom:14px">처음 설정이 필요합니다</h2>
+      <p>이 트래커를 우리 팀에 맞게 쓰려면, 코드 안의<br>
+      <code>SUPABASE_URL</code> 과 <code>SUPABASE_ANON_KEY</code> 값을<br>
+      우리 팀 전용 Supabase 프로젝트 값으로 바꿔야 합니다.</p>
+      <p style="color:#7FA6B4;font-size:13px;margin-top:14px">
+      그대로 두면 다른 팀의 데이터베이스를 함께 쓰게 되어 데이터가 섞입니다.<br>
+      Supabase에서 새 프로젝트를 만든 뒤, Settings → API 에서 값을 확인하세요.</p>
+    </div>`;
+  throw new Error('SUPABASE_URL / SUPABASE_ANON_KEY 설정이 필요합니다.');
+}
+
+/* 이 배포 주소(도메인+경로)별로 데이터를 자동 구분합니다.
+   다른 팀이 이 코드를 그대로 복사해서 다른 주소에 올려도
+   주소가 다르면 자동으로 별도 데이터 영역을 쓰게 되어 서로 섞이지 않습니다. */
+const TEAM_NS = location.host + location.pathname;
 
 /* ================= 기준 ================= */
 const PLAN_A = [
@@ -470,14 +493,25 @@ async function sGet(key, shared=true){
     const v = localStorage.getItem(key);
     return v ? JSON.parse(v) : null;
   }
+  const nsKey = TEAM_NS + ':' + key;
   try{
     const { data, error } = await sb
       .from('summer_tracker_kv')
       .select('value')
+      .eq('key', nsKey)
+      .maybeSingle();
+    if(!error && data) return data.value;
+    // 이전 방식(주소 구분 없던 시절)에 저장된 데이터가 있으면 새 방식으로 옮겨서 계속 사용
+    const old = await sb
+      .from('summer_tracker_kv')
+      .select('value')
       .eq('key', key)
       .maybeSingle();
-    if(error || !data) return null;
-    return data.value;
+    if(!old.error && old.data){
+      await sb.from('summer_tracker_kv').upsert({ key: nsKey, value: old.data.value, updated_at: new Date().toISOString() });
+      return old.data.value;
+    }
+    return null;
   }catch(e){ return null; }
 }
 async function sSet(key, val, shared=true){
@@ -488,7 +522,7 @@ async function sSet(key, val, shared=true){
   try{
     const { error } = await sb
       .from('summer_tracker_kv')
-      .upsert({ key, value: val, updated_at: new Date().toISOString() });
+      .upsert({ key: TEAM_NS+':'+key, value: val, updated_at: new Date().toISOString() });
     if(error) alert('저장 중 오류가 발생했습니다. 네트워크 확인 후 다시 시도하세요.');
   }catch(e){
     alert('저장 중 오류가 발생했습니다. 네트워크 확인 후 다시 시도하세요.');
@@ -497,6 +531,7 @@ async function sSet(key, val, shared=true){
 async function sDel(key, shared=true){
   if(!shared){ localStorage.removeItem(key); return; }
   try{
+    await sb.from('summer_tracker_kv').delete().eq('key', TEAM_NS+':'+key);
     await sb.from('summer_tracker_kv').delete().eq('key', key);
   }catch(e){}
 }
