@@ -363,7 +363,7 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
   <div id="admin-body" style="display:none">
     <div class="card">
       <h2>생명보험 상품 · 환산율 · 추가인정율</h2>
-      <p class="muted" style="margin-bottom:12px">여기서 등록/수정한 값은 <b>모든 FC에게 동일하게 즉시 적용</b>됩니다. 추가인정율은 팀원 화면에는 노출되지 않고, 관리자 모드의 달성률과 CANP에만 반영됩니다.</p>
+      <p class="muted" style="margin-bottom:12px">여기서 등록/수정한 값은 <b>모든 FC에게 동일하게 즉시 적용</b>됩니다. 추가인정율은 CMIP·CANP 달성률 모두에 반영되어, 팀 대시보드에서 모든 팀원에게 표시됩니다.</p>
       <table class="adm">
         <thead><tr><th style="width:44%">상품명</th><th>환산율 (%)</th><th>추가인정</th><th></th></tr></thead>
         <tbody id="product-rows"></tbody>
@@ -558,7 +558,7 @@ const memberOf = id => members.find(x=>x.id===id);
 
 function statsOf(memberId){
   const list = contracts[memberId] || [];
-  const s = {lifeCmip:0, canp:0, canpBonus:0, lifeCnt:0, pcCmip:0, excluded:0};
+  const s = {lifeCmip:0, lifeCmipBonus:0, canp:0, canpBonus:0, lifeCnt:0, pcCmip:0, excluded:0};
   for(const c of list){
     const prem = Number(c.premium)||0;
     if(prem < MIN_PREMIUM){ s.excluded++; continue; }
@@ -567,6 +567,7 @@ function statsOf(memberId){
       const rate = p ? Number(p.rate)||0 : 0;
       const bonus = p ? Number(p.bonus)||100 : 100;
       s.lifeCmip += prem;
+      s.lifeCmipBonus += prem * bonus / 100;
       s.canp += prem * rate / 100;
       s.canpBonus += prem * rate / 100 * bonus / 100;
       s.lifeCnt += 1;
@@ -579,7 +580,11 @@ function statsOf(memberId){
 function planResult(plan, s, useBonus){
   let minRatio = 1;
   const crits = plan.map(c=>{
-    const cur = (c.key==='canp' && useBonus) ? s.canpBonus : s[c.key];
+    let cur = s[c.key];
+    if(useBonus){
+      if(c.key==='canp') cur = s.canpBonus;
+      else if(c.key==='lifeCmip') cur = s.lifeCmipBonus;
+    }
     const ratio = Math.min(cur/c.target, 1);
     if(ratio < minRatio) minRatio = ratio;
     return {...c, cur, ratio, met: cur >= c.target};
@@ -637,19 +642,17 @@ function renderDash(){
     if(achieved) done++;
     const bestKey = achieved ? (A.achieved?'A':'B') : (A.pct>=B.pct?'A':'B');
 
-    let adminRow = '';
-    if(adminMode){
-      const Ab = planResult(PLAN_A,s,true), Bb = planResult(PLAN_B,s,true);
-      const bAchieved = Ab.achieved || Bb.achieved;
-      adminRow = `
+    const Ab = planResult(PLAN_A,s,true), Bb = planResult(PLAN_B,s,true);
+    const bAchieved = Ab.achieved || Bb.achieved;
+    const bonusRow = `
       <div class="admin-row">
-        <span>🔓</span>
+        <span>➕</span>
+        <span>추가인정 반영 CMIP <b>${man(s.lifeCmipBonus)}만</b></span>
         <span>추가인정 반영 CANP <b>${man(s.canpBonus)}만</b></span>
         <span>A안 <b>${Ab.pct}%</b></span>
         <span>B안 <b>${Bb.pct}%</b></span>
         ${bAchieved ? '<span style="color:#0B7A55">→ 추가인정 기준 달성</span>' : ''}
       </div>`;
-    }
 
     html += `
     <div class="card">
@@ -669,7 +672,7 @@ function renderDash(){
         ${laneHtml('A안',A,'a-lane',bestKey==='A',achieved)}
         ${laneHtml('B안',B,'b-lane',bestKey==='B',achieved)}
       </div>
-      ${adminRow}
+      ${bonusRow}
     </div>`;
   }
   box.innerHTML = html;
@@ -1122,4 +1125,3 @@ loadAll();
 </script>
 </body>
 </html>
- 
