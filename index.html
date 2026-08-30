@@ -50,6 +50,8 @@ button:focus-visible{outline:3px solid var(--water);outline-offset:2px}
 .btn-admin{background:var(--admin);color:#fff}
 .btn-x{background:transparent;color:#A7C4CF;font-size:16px;padding:4px 8px}
 .btn-x:hover{color:var(--coral)}
+.btn-edit{background:transparent;color:#A7C4CF;font-size:15px;padding:4px 8px}
+.btn-edit:hover{color:var(--pool)}
 .btn-ghost{background:transparent;color:#5E8496;text-decoration:underline;padding:6px 8px;font-size:12.5px}
 input,select{padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);background:#FBFEFF}
 input:focus,select:focus{outline:none;border-color:var(--water)}
@@ -122,6 +124,7 @@ input:focus,select:focus{outline:none;border-color:var(--water)}
 @media(max-width:860px){.add-form{grid-template-columns:1fr 1fr}.add-form .full{grid-column:1/-1}}
 .field label{display:block;font-size:11.5px;font-weight:700;color:#5E8496;margin-bottom:4px}
 .field input,.field select{width:100%}
+.edit-banner{background:var(--water-soft);border:1px dashed var(--water);border-radius:10px;padding:9px 12px;font-size:12.5px;font-weight:700;color:var(--pool-deep);margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .group-title{display:flex;align-items:center;gap:9px;margin:22px 0 4px;font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:17px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .group-title.life{color:var(--pool-deep)}
 .group-title.pc{color:#B7791F}
@@ -129,7 +132,7 @@ input:focus,select:focus{outline:none;border-color:var(--water)}
 table.ctr{width:100%;border-collapse:collapse;font-size:13.5px}
 table.ctr th{text-align:left;font-size:12px;color:#5E8496;padding:8px;border-bottom:1.5px solid var(--line);white-space:nowrap}
 table.ctr td{padding:9px 8px;border-bottom:1px solid #EAF6F9;vertical-align:middle}
-table.ctr td.r{text-align:right;font-weight:900}
+table.ctr td.r{text-align:right;font-weight:900;white-space:nowrap}
 table.ctr tr.subtotal td{background:#F4FBFD;font-weight:900;color:var(--pool-deep)}
 .excluded-row td{color:#B4C9D2;text-decoration:line-through}
 .excluded-row .why{color:var(--coral);font-size:11px;text-decoration:none;font-weight:900}
@@ -180,15 +183,17 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
 .mob-ctr .amts{text-align:right;font-weight:900}
 .mob-ctr .amts .canp-txt{display:block;font-size:11.5px;color:var(--pool);font-weight:700;margin-top:2px}
 .mob-ctr .exc-tag{
-  position:absolute;top:10px;right:38px;font-size:10.5px;font-weight:900;color:var(--coral);
+  position:absolute;top:10px;right:62px;font-size:10.5px;font-weight:900;color:var(--coral);
   background:#FEECEC;border-radius:6px;padding:2px 7px;
 }
 .mob-ctr .btn-x{position:absolute;top:6px;right:4px}
+.mob-ctr .btn-edit{position:absolute;top:6px;right:34px}
 .mob-subtotal{
   background:#F4FBFD;border:1px solid var(--line);border-radius:12px;
-  padding:11px 14px;margin-bottom:10px;display:flex;justify-content:space-between;
-  font-size:13px;font-weight:900;color:var(--pool-deep);flex-wrap:wrap;gap:6px;
+  padding:11px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:4px;
+  font-size:13px;font-weight:900;color:var(--pool-deep);
 }
+.mob-subtotal .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
 
 /* ===== 모바일 전용 조정 ===== */
 @media(max-width:640px){
@@ -328,6 +333,12 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
     <div id="identity-area"></div>
     <div id="entry-body" style="display:none">
       <h3>계약 추가</h3>
+      <div id="edit-banner-wrap" style="display:none">
+        <div class="edit-banner">
+          <span>✎ 계약 수정 중입니다</span>
+          <button class="btn-line" style="padding:5px 12px;font-size:12px" onclick="cancelEditContract()">취소</button>
+        </div>
+      </div>
       <div class="add-form">
         <div class="field"><label>귀속 월</label>
           <select id="f-month"><option value="7">7월</option><option value="8">8월</option></select>
@@ -344,7 +355,7 @@ footer{margin-top:40px;text-align:center;font-size:12px;color:#7FA6B4;line-heigh
         <div class="field"><label>월납입 금액 (원)</label>
           <input id="f-premium" inputmode="numeric" placeholder="예: 150,000" oninput="fmtInput(this)">
         </div>
-        <button class="btn-main" onclick="addContract()">+ 추가</button>
+        <button class="btn-main" id="f-submit-btn" onclick="addContract()">+ 추가</button>
       </div>
       <p class="muted">※ 월납 1만원 미만 계약은 목록에 남지만 집계에서 자동 제외됩니다. 본인계약·단독실손·일반·자동차보험은 입력 금지.</p>
       <div id="entry-list"></div>
@@ -481,6 +492,7 @@ let contracts = {};  // memberId -> [...]
 let pins = {};       // memberId -> pin (공유)
 let myId = null;     // 이 기기의 본인 (개인 저장소)
 let adminMode = false;
+let editingContractId = null; // 지금 수정 중인 계약 id (없으면 null)
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
@@ -552,7 +564,13 @@ async function loadAll(){
   renderAll();
 }
 
-/* ================= 계산 ================= */
+/* ================= 계산 =================
+   CMIP  = 월납입 원금
+   CANP  = 월납입 × 환산율(%)
+   우대(추가인정)는 CMIP·CANP 둘 다에 곱해서 적용:
+     우대CMIP = CMIP × 추가인정율(%)
+     우대CANP = CANP × 추가인정율(%)
+================================================= */
 const prodOf = pid => products.find(x=>x.id===pid);
 const memberOf = id => members.find(x=>x.id===id);
 
@@ -592,6 +610,21 @@ function planResult(plan, s, useBonus){
   return {crits, pct: Math.round(minRatio*100), achieved: crits.every(c=>c.met)};
 }
 
+/* 계약 1건의 CMIP/CANP/우대CMIP/우대CANP 계산 (표·카드에서 공용으로 사용) */
+function contractCalc(c){
+  const prem = Number(c.premium)||0;
+  const excluded = prem < MIN_PREMIUM;
+  const isLife = c.type==='life';
+  const p = isLife ? prodOf(c.productId) : null;
+  const rate = p ? Number(p.rate)||0 : 0;
+  const bonus = p ? Number(p.bonus)||100 : 100;
+  const cmip = (isLife && !excluded) ? prem : 0;
+  const canp = (isLife && !excluded) ? prem*rate/100 : 0;
+  const cmipBonus = (isLife && !excluded) ? prem*bonus/100 : 0;
+  const canpBonus = (isLife && !excluded) ? prem*rate/100*bonus/100 : 0;
+  return {prem, excluded, isLife, p, rate, bonus, cmip, canp, cmipBonus, canpBonus};
+}
+
 /* ================= 표기 ================= */
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const won = n => Math.round(Number(n)).toLocaleString('ko-KR');
@@ -615,6 +648,7 @@ function showPage(id){
    관리자 본인(isAdmin) 팀원은 일반 화면(adminMode=false)에서는
    목록/달성·진행 카운트/현황 요약 복사 어디에도 나타나지 않습니다.
    관리자 비밀번호로 로그인했을 때(adminMode=true)만 함께 표시됩니다.
+   진행률(달성 여부 → 진행률 내림차순)이 높은 사람이 위로 오도록 정렬됩니다.
 ================================================= */
 function renderDash(){
   const box = document.getElementById('dash-members');
@@ -726,7 +760,7 @@ function renderIdentity(){
     <div class="me-bar" style="background:var(--admin-soft)">
       <span style="font-size:15px">🔓</span>
       <span class="tagline" style="color:#4C2A8C">관리자 모드 — 팀원 계약 열람/수정 가능</span>
-      <select id="admin-sel" onchange="window.__adminSel=this.value; renderEntry();" style="margin-left:auto">
+      <select id="admin-sel" onchange="window.__adminSel=this.value; editingContractId=null; renderEntry();" style="margin-left:auto">
         ${members.map(m=>`<option value="${m.id}" ${m.id===cur?'selected':''}>${esc(m.name)}${m.isAdmin?' (관리자 본인)':''}</option>`).join('')}
       </select>
     </div>`;
@@ -786,6 +820,7 @@ async function claimIdentity(){
 async function switchIdentity(){
   if(!confirm('다른 사람으로 전환하려면 그 사람의 PIN이 필요합니다. 계속할까요?')) return;
   myId = null;
+  editingContractId = null;
   await sDel('summer:me', false);
   renderIdentity(); renderEntry();
 }
@@ -810,44 +845,35 @@ function onTypeChange(){
 }
 
 function contractRow(memberId, c){
-  const prem = Number(c.premium)||0;
-  const excluded = prem < MIN_PREMIUM;
-  const isLife = c.type==='life';
-  const p = isLife ? prodOf(c.productId) : null;
-  const rate = p ? Number(p.rate)||0 : 0;
+  const {prem, excluded, isLife, p, rate, bonus, canp, cmipBonus, canpBonus} = contractCalc(c);
   const pname = isLife ? (p?.name || (c.productName?c.productName+' (삭제된 상품)':'—')) : '—';
-  const canp = (isLife && !excluded) ? prem*rate/100 : 0;
   return `<tr class="${excluded?'excluded-row':''}">
     <td>${c.month}월</td>
-    <td>${esc(pname)}${isLife&&rate?` <span class="muted">(${rate}%)</span>`:''}</td>
+    <td>${esc(pname)}${isLife&&rate?` <span class="muted">(${rate}%${bonus!==100?' · 우대 '+bonus+'%':''})</span>`:''}</td>
     <td>${esc(c.insured)}</td>
     <td class="r">${won(prem)}</td>
-    ${isLife?`<td class="r">${won(canp)}</td>`:''}
-    <td>${excluded?'<span class="why">1만원 미만 제외</span> ':''}<button class="btn-x" title="삭제" onclick="removeContract('${memberId}','${c.id}')">✕</button></td>
+    ${isLife?`<td class="r">${won(canp)}</td><td class="r">${won(cmipBonus)}</td><td class="r">${won(canpBonus)}</td>`:''}
+    <td>${excluded?'<span class="why">1만원 미만 제외</span> ':''}<button class="btn-edit" title="수정" onclick="editContractOpen('${memberId}','${c.id}')">✎</button><button class="btn-x" title="삭제" onclick="removeContract('${memberId}','${c.id}')">✕</button></td>
   </tr>`;
 }
 
 function mobRow(memberId, c){
-  const prem = Number(c.premium)||0;
-  const excluded = prem < MIN_PREMIUM;
-  const isLife = c.type==='life';
-  const p = isLife ? prodOf(c.productId) : null;
-  const rate = p ? Number(p.rate)||0 : 0;
+  const {prem, excluded, isLife, p, rate, bonus, canp, cmipBonus, canpBonus} = contractCalc(c);
   const pname = isLife ? (p?.name || (c.productName?c.productName+' (삭제된 상품)':'—')) : '손해보험';
-  const canp = (isLife && !excluded) ? prem*rate/100 : 0;
   return `
   <div class="mob-ctr ${excluded?'excluded':''}">
     <div class="row1">
       <span class="month-chip">${c.month}월</span>
-      <span class="pname">${esc(pname)}${isLife&&rate?` <span class="rate-txt">(${rate}%)</span>`:''}</span>
+      <span class="pname">${esc(pname)}${isLife&&rate?` <span class="rate-txt">(${rate}%${bonus!==100?' · 우대 '+bonus+'%':''})</span>`:''}</span>
     </div>
     <div class="row2">
       <span class="insured">피보험자 ${esc(c.insured)}</span>
       <span class="amts">월납 ${won(prem)}원
-        ${isLife?`<span class="canp-txt">CANP ${won(canp)}원</span>`:''}
+        ${isLife?`<span class="canp-txt">CANP ${won(canp)}원</span><span class="canp-txt">우대CMIP ${won(cmipBonus)}원 · 우대CANP ${won(canpBonus)}원</span>`:''}
       </span>
     </div>
     ${excluded?'<span class="exc-tag">1만원 미만 제외</span>':''}
+    <button class="btn-edit" title="수정" onclick="editContractOpen('${memberId}','${c.id}')">✎</button>
     <button class="btn-x" title="삭제" onclick="removeContract('${memberId}','${c.id}')">✕</button>
   </div>`;
 }
@@ -869,16 +895,19 @@ function renderEntry(){
     <div class="group-title life">🌊 생명보험 <span class="cnt">${lifeList.length}건 입력 · 인정 ${s.lifeCnt}건</span></div>
     <div class="desk-only tbl-wrap">
       <table class="ctr">
-        <thead><tr><th>월</th><th>상품명</th><th>피보험자</th><th style="text-align:right">월납입(원)</th><th style="text-align:right">CANP(원)</th><th></th></tr></thead>
+        <thead><tr><th>월</th><th>상품명</th><th>피보험자</th><th style="text-align:right">CMIP(원)</th><th style="text-align:right">CANP(원)</th><th style="text-align:right">우대CMIP(원)</th><th style="text-align:right">우대CANP(원)</th><th></th></tr></thead>
         <tbody>
           ${lifeList.map(c=>contractRow(memberId,c)).join('')}
-          <tr class="subtotal"><td colspan="3">생명 소계</td><td class="r">${won(s.lifeCmip)}</td><td class="r">${won(s.canp)}</td><td></td></tr>
+          <tr class="subtotal"><td colspan="3">생명 소계</td><td class="r">${won(s.lifeCmip)}</td><td class="r">${won(s.canp)}</td><td class="r">${won(s.lifeCmipBonus)}</td><td class="r">${won(s.canpBonus)}</td><td></td></tr>
         </tbody>
       </table>
     </div>
     <div class="mob-only">
       ${lifeList.map(c=>mobRow(memberId,c)).join('')}
-      <div class="mob-subtotal"><span>생명 소계</span><span>월납 ${won(s.lifeCmip)}원 · CANP ${won(s.canp)}원</span></div>
+      <div class="mob-subtotal">
+        <span class="row"><span>생명 소계</span><span>CMIP ${won(s.lifeCmip)}원 · CANP ${won(s.canp)}원</span></span>
+        <span class="row"><span></span><span>우대CMIP ${won(s.lifeCmipBonus)}원 · 우대CANP ${won(s.canpBonus)}원</span></span>
+      </div>
     </div>`;
   }
   if(pcList.length){
@@ -895,7 +924,7 @@ function renderEntry(){
     </div>
     <div class="mob-only">
       ${pcList.map(c=>mobRow(memberId,c)).join('')}
-      <div class="mob-subtotal"><span>손보 소계</span><span>월납 ${won(s.pcCmip)}원</span></div>
+      <div class="mob-subtotal"><span class="row"><span>손보 소계</span><span>월납 ${won(s.pcCmip)}원</span></span></div>
     </div>`;
   }
   html += `
@@ -906,6 +935,32 @@ function renderEntry(){
     <span class="numchip">손보 CMIP<b>${man(s.pcCmip)}만</b></span>
   </div>`;
   box.innerHTML = html;
+}
+
+/* 계약 수정 시작: 해당 계약 값을 입력 폼에 채워넣고 "수정 완료" 모드로 전환 */
+function editContractOpen(memberId, cid){
+  const c = (contracts[memberId]||[]).find(x=>x.id===cid);
+  if(!c) return;
+  editingContractId = cid;
+  document.getElementById('f-month').value = c.month;
+  document.getElementById('f-type').value = c.type;
+  onTypeChange();
+  renderProductSelect();
+  if(c.type==='life') document.getElementById('f-product').value = c.productId || '';
+  document.getElementById('f-insured').value = c.insured;
+  document.getElementById('f-premium').value = won(c.premium);
+  document.getElementById('f-submit-btn').textContent = '수정 완료';
+  document.getElementById('edit-banner-wrap').style.display = '';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* 계약 수정 취소: 입력 폼을 원래(새 계약 추가) 상태로 되돌림 */
+function cancelEditContract(){
+  editingContractId = null;
+  document.getElementById('f-insured').value='';
+  document.getElementById('f-premium').value='';
+  document.getElementById('f-submit-btn').textContent = '+ 추가';
+  document.getElementById('edit-banner-wrap').style.display = 'none';
 }
 
 async function addContract(){
@@ -921,6 +976,25 @@ async function addContract(){
   if(!premium || premium<=0){ alert('월납입 금액을 입력하세요.'); return; }
   if(premium < MIN_PREMIUM && !confirm('월납 1만원 미만 계약은 집계에서 제외됩니다. 기록용으로만 추가할까요?')) return;
 
+  contracts[memberId] = contracts[memberId] || [];
+
+  if(editingContractId){
+    const idx = contracts[memberId].findIndex(x=>x.id===editingContractId);
+    if(idx === -1){ alert('수정할 계약을 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.'); cancelEditContract(); return; }
+    contracts[memberId][idx] = {
+      id: editingContractId,
+      month: document.getElementById('f-month').value,
+      type,
+      productId: type==='life' ? productId : null,
+      productName: type==='life' ? (prodOf(productId)?.name||'') : '',
+      insured, premium
+    };
+    await sSet('summer:contracts:'+memberId, contracts[memberId]);
+    cancelEditContract();
+    renderEntry(); renderDash();
+    return;
+  }
+
   const c = {
     id: uid(),
     month: document.getElementById('f-month').value,
@@ -929,7 +1003,6 @@ async function addContract(){
     productName: type==='life' ? (prodOf(productId)?.name||'') : '',
     insured, premium
   };
-  contracts[memberId] = contracts[memberId] || [];
   contracts[memberId].push(c);
   await sSet('summer:contracts:'+memberId, contracts[memberId]);
   document.getElementById('f-insured').value='';
@@ -941,6 +1014,7 @@ async function removeContract(memberId, cid){
   const c = (contracts[memberId]||[]).find(x=>x.id===cid);
   if(!c) return;
   if(!confirm(`[${c.insured} / ${won(c.premium)}원] 계약을 삭제할까요?`)) return;
+  if(editingContractId===cid) cancelEditContract();
   contracts[memberId] = contracts[memberId].filter(x=>x.id!==cid);
   await sSet('summer:contracts:'+memberId, contracts[memberId]);
   renderEntry(); renderDash();
